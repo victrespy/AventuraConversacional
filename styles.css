@@ -1,0 +1,150 @@
+body {
+    background-color: #0d1117;
+    color: #d4d4d4;
+    font-family: 'Consolas', monospace;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+#juego {
+    display: flex;
+    flex-grow: 1;
+    overflow: hidden;
+    /* En móviles cambiaremos la dirección a columna */
+    flex-direction: row; 
+}
+
+#info {
+    /* PROPIEDAD CLAVE: */
+    flex: 0 0 280px; /* No crece, no se encoge, siempre mide 280px */
+    
+    background-color: #161b22;
+    border-right: 1px solid #30363d;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto; /* Por si las stats o inventario son muy largos */
+}
+
+#info, #info * {
+    font-family: 'Consolas', monospace;
+}
+
+#info h3 {
+  margin-bottom: 10px;
+}
+
+#info.oculto {
+    display: none;
+}
+
+#pantalla {
+    flex-grow: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex; /* Usamos flex para centrar el hijo */
+    justify-content: center; 
+}
+
+#contenido-pantalla {
+    width: 100%;
+    max-width: 800px; /* Anchura máxima para pantallas grandes */
+    /* No hace falta min-width, width: 100% se encarga de que se adapte si es pequeño */
+}
+
+#consola {
+    background-color: #0d1117;
+    color: #7ee787;
+    border: none;
+    border-top: 1px solid #30363d;
+    padding: 15px;
+    font-family: inherit;
+    outline: none;
+}
+
+.stats-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.stats-principales, .stats-salud {
+    display: flex;
+    gap: 15px;
+}
+
+.opcion-terminal {
+    cursor: pointer;
+    display: block;
+    padding: 5px 0;
+    transition: all 0.2s;
+}
+
+.opcion-terminal:hover {
+    color: #7DC391;
+}
+
+.opcion-terminal::before {
+    content: "> ";
+    opacity: 0;
+}
+
+.opcion-terminal:hover::before {
+    opacity: 1;
+}
+
+
+
+@media screen and (max-width: 768px) {
+    #juego {
+        flex-direction: column;
+    }
+
+    #info {
+        flex: 0 0 auto;
+        width: 100%;
+        height: auto; /* Dejamos que se ajuste al contenido */
+        border-right: none;
+        border-top: 1px solid #30363d;
+        padding: 10px; /* Menos padding para ganar espacio */
+    }
+
+    #info h2 {
+        font-size: 1.2em; /* Un poco más grande también en móvil */
+        margin-bottom: 10px;
+        display: block; /* Que ocupe su propia línea */
+    }
+
+    /* Ajustes de texto para que quepa todo */
+    #info p, #info h3 {
+        margin: 5px 0;
+        font-size: 0.8em;
+    }
+    
+    #info h3 {
+      margin-top: 10px;
+    }
+    
+    #info hr {
+        display: none; /* Quitamos líneas para ahorrar espacio vertical */
+    }
+
+    #lista-inventario {
+        display: flex;
+        flex-direction: row;
+        margin-top: 8px;
+        gap: 10px;
+        overflow-x: auto; /* El inventario sí puede tener scroll horizontal si es muy largo */
+    }
+    
+    .stats-container {
+        flex-direction: column; /* Apila los grupos verticalmente */
+        gap: 5px; /* Espacio entre la fila de stats y la fila de salud */
+    }
+
+    .stats-principales, .stats-salud {
+        justify-content: flex-start; /* Alinea al principio */
+        width: 100%;
+    }
+}
