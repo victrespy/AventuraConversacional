@@ -94,6 +94,7 @@ function recibirDaño(fisico, mental) {
 
     // 2. Actualizamos el panel lateral para que el cambio se vea reflejado
     actualizarPanelInfo(jugador.clase);
+    imprimir(`Has recibido ${fisico} daño físico y ${mental} daño mental.`, 30);
 
     // 3. Verificamos si el investigador ha muerto o enloquecido
     if (jugador.clase.salud_fisica <= 0 || jugador.clase.salud_mental <= 0) {
