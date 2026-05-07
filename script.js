@@ -2007,6 +2007,16 @@ async function escenaAltar() {
             }
         });
     });
+
+    if (visitasAltar > 1) {
+        mostraropcion("RENDIRTE ANTE EL HORROR", async () => {
+            limpiarPantalla();
+            await imprimir("Te arrodillas, derrotado. No quieres seguir intentando abrir la barrera.");
+            await imprimir("Te quedas a ver como los cultistas terminan su cántico. El portal se abre completamente, y una presencia indescriptible emerge de la brecha dimensional.");
+            await pausa(1500);
+            await finalYogSothoth();
+        });
+    }
 }
 
 
@@ -2036,7 +2046,6 @@ async function escenaFinal() {
             await victoriaFinal();
         } else {
             await imprimir("El líder esquiva tu embestida con una agilidad sobrenatural y te clava la daga de obsidiana en el costado.");
-            await recibirDaño(3, 0);
             await imprimir("Mientras caes al suelo, ves cómo el portal se abre por completo.");
             await finalYogSothoth();
         }
@@ -2046,7 +2055,8 @@ async function escenaFinal() {
     if (jugador.inventario.includes("Necronomicón")) {
         mostraropcion("RECITAR EL CÁNTICO DE CIERRE", async () => {
             limpiarPantalla();
-            await imprimir("Abres el libro de piel humana. Las palabras prohibidas vibran en el aire.");
+            await imprimir("Abres el libro extraño. Las palabras prohibidas vibran en el aire.");
+            await pausa(500);
             let prueba;
             if (jugador.inventario.includes("Relicario de plata")) {
                 await imprimir("El relicario de tu cuello brilla, dándote la paz mental necesaria.");
@@ -2054,16 +2064,29 @@ async function escenaFinal() {
             } else {
                 prueba = tirarDadoMedio("voluntad");
             }
-            if (prueba.exito) { victoriaFinal(); } else { finalYogSothoth(); }
+            await pausa(1000);
+            if (prueba.exito) { 
+                await imprimir("El cántico resuena con poder. El líder grita de furia y dolor y el portal se desestabiliza, succionándolo a él hacia su interior.");
+                victoriaFinal(); 
+            } else { 
+                await imprimir("Las palabras del cántico se enredan en tu mente, ese idioma no fue pensado para que un simple mortal lo comprendiera. El líder se ríe de tu fracaso mientras el portal se abre completamente.");
+                finalYogSothoth(); 
+            }
         });
     }
 
     if (jugador.inventario.includes("Pistola")) {
         mostraropcion("DISPARAR AL CORAZÓN DEL LÍDER", async () => {
             limpiarPantalla();
-            await imprimir("El estruendo de la pólvora silencia los cánticos. El líder cae hacia atrás, dentro del vórtice.");
-            const prueba = tirarDadoMedio("fuerza");
-            if (prueba.exito) { victoriaFinal(); } else { finalizarPartida(); }
+            await imprimir("El estruendo de la pólvora silencia los cánticos.");
+            const prueba = tirarDadoFacil("fuerza");
+            if (prueba.exito) { 
+                await imprimir("Logras alcanzar al líder con el disparo. Los canticos cesan, y el portal comienza a cerrarse.");
+                victoriaFinal(); 
+            } else { 
+                await imprimir("El disparo falla, y el líder se ríe de tu fracaso mientras el portal se abre completamente.");
+                finalYogSothoth(); 
+            }
         });
     }
 
@@ -2093,14 +2116,15 @@ async function escenaFinal() {
 
 async function victoriaFinal() {
     limpiarPantalla();
-    await imprimir("UN TRUENO ENSORDECEDOR SACUDE LOS CIMIENTOS DE LA REALIDAD.", 40);
+    await imprimir("UN TRUENO ENSORDECEDOR SACUDE LOS CIMIENTOS DE LA REALIDAD.", velocidadTexto+30);
     await pausa(1000);
-    await imprimir("El vórtice sobre Sentinel Hill empieza a succionarse a sí mismo. Los colores imposibles se desvanecen, dejando paso al negro natural de la noche.");
+    await imprimir("El vórtice sobre Sentinel Hill empieza a consumirse a sí mismo. Los colores imposibles se desvanecen, dejando paso al negro natural de la noche.");
     await imprimir("Los cultistas que aún quedan en pie huyen despavoridos hacia el bosque, sus cánticos convertidos en lamentos de terror.");
     await pausa(1500);
     
     await imprimir("Sientes una presión inmensa desaparecer de tu pecho. El aire vuelve a oler a lluvia y a tierra mojada, no a azufre y descomposición.");
     await imprimir("Miras hacia Arkham desde la cima. Las luces de la ciudad brillan ajenas al horror que acabas de detener. Nadie sabrá nunca tu nombre, ni lo que hiciste hoy aquí.");
+    await imprimir("Si al menos Armitage siguiera vivo podrias compartir esta carga con el...", velocidadTexto+30);
     await pausa(2000);
     
     await imprimir("Eres el guardián solitario en el umbral del abismo. Una figura cansada que camina de vuelta a casa bajo la luz de una luna que, por fin, vuelve a ser solo una roca en el cielo.");
@@ -2123,11 +2147,7 @@ async function finalYogSothoth() {
     
     await imprimir("LA REALIDAD HA SIDO BORRADA.", 120);
     
-    const btn = document.createElement('div');
-    btn.className = "opcion-terminal";
-    btn.textContent = "[ ACEPTAR EL OLVIDO (REINTENTAR) ]";
-    btn.onclick = () => location.reload();
-    pantallaContenido.appendChild(btn);
+    mostraropcion("ACEPTAR EL OLVIDO (REINTENTAR)", () => location.reload());
 }
 
 async function finalSacrificio() {

@@ -136,7 +136,7 @@ async function finalizarPartida() {
     await pausa(1000);
     
     if (jugador.clase.salud_fisica <= 0) {
-        await imprimir("Tu cuerpo, roto y desgarrado por fuerzas que no comprendes, finalmente se desploma sobre la fría piedra de Sentinel Hill.");
+        await imprimir("Tu cuerpo, roto y desgarrado por fuerzas que no comprendes, finalmente se desploma sobre la fría piedra.");
         await imprimir("La sangre se enfría rápidamente mientras las sombras se acercan para reclamar lo que queda de ti.");
     } else {
         await imprimir("La última barrera de tu cordura se quiebra con un sonido seco. Las visiones de los mundos exteriores inundan tu mente, borrando quién eras.");
@@ -144,7 +144,7 @@ async function finalizarPartida() {
     }
 
     await pausa(2000);
-    await imprimir("LA ORDEN DE LOS ÁNGULOS HA TRIUNFADO.", 50);
+    await imprimir("LA ORDEN DE YOG-SOTHOTH HA TRIUNFADO.", 50);
     
     mostraropcion("VOLVER A INTENTARLO", () => location.reload());
 }
