@@ -87,19 +87,41 @@ function tirarDadoFacil(stat) {
  * FUNCIÓN GLOBAL: RECIBIR DAÑO
  * Resta vida o cordura y actualiza la interfaz.
  */
-function recibirDaño(fisico, mental) {
+async function recibirDaño(fisico, mental) {
+    //Si el jugador tiene abrigo de cuero no sufre daño físico, si tiene amuleto de jade no sufre daño mental
+    if (jugador.inventario.includes("Abrigo de cuero") && fisico > 0) {
+        fisico = 0;
+        await imprimir("Tu abrigo de cuero te protege del daño físico, pero despues de esto ha quedado inservible.", 30);
+        jugador.inventario = jugador.inventario.filter(item => item !== "Abrigo de cuero");
+        renderizarInventario();
+    }
+    if (jugador.inventario.includes("Amuleto") && mental > 0) {
+        mental = 0;
+        await imprimir("Tu amuleto te protege de la locura.", 30);
+        jugador.inventario = jugador.inventario.filter(item => item !== "Amuleto");
+        renderizarInventario();
+    }
+    await pausa(500); 
+
     // 1. Restamos los valores al objeto jugador
     jugador.clase.salud_fisica -= fisico;
     jugador.clase.salud_mental -= mental;
 
     // 2. Actualizamos el panel lateral para que el cambio se vea reflejado
     actualizarPanelInfo(jugador.clase);
-    imprimir(`Has recibido ${fisico} daño físico y ${mental} daño mental.`, 30);
-
+    if (fisico > 0 && mental > 0) {
+        await imprimir(`Has recibido ${fisico} daño físico y ${mental} daño mental.`, 30);
+    } else if (fisico > 0) {
+        await imprimir(`Has recibido ${fisico} daño físico.`, 30);
+    } else if (mental > 0) {
+        await imprimir(`Has recibido ${mental} daño mental.`, 30);
+    }
+    
     // 3. Verificamos si el investigador ha muerto o enloquecido
     if (jugador.clase.salud_fisica <= 0 || jugador.clase.salud_mental <= 0) {
-        finalizarPartida();
+        await finalizarPartida();
     }
+    await pausa(500);
 }
 
 /**
@@ -107,26 +129,24 @@ function recibirDaño(fisico, mental) {
  * Detiene el juego cuando el jugador pierde.
  */
 async function finalizarPartida() {
-    detenerTodoElTexto(); // Detenemos cualquier escritura en curso
-    pantallaContenido.innerHTML = ""; // Limpiamos la pantalla
+    detenerTodoElTexto();
+    pantallaContenido.innerHTML = "";
     
-    await imprimir("--- EL INVESTIGADOR HA CAÍDO ---", 50);
+    await imprimir("EL INVESTIGADOR HA SUCUMBIDO.", 60);
+    await pausa(1000);
     
     if (jugador.clase.salud_fisica <= 0) {
-        await imprimir("Tus heridas son demasiado graves. La oscuridad te reclama mientras tu cuerpo cede finalmente al dolor.", 30);
+        await imprimir("Tu cuerpo, roto y desgarrado por fuerzas que no comprendes, finalmente se desploma sobre la fría piedra de Sentinel Hill.");
+        await imprimir("La sangre se enfría rápidamente mientras las sombras se acercan para reclamar lo que queda de ti.");
     } else {
-        await imprimir("Tu mente se ha fracturado irremediablemente. Ahora solo ves sombras y escuchas cánticos en idiomas que ningún humano debería conocer.", 30);
+        await imprimir("La última barrera de tu cordura se quiebra con un sonido seco. Las visiones de los mundos exteriores inundan tu mente, borrando quién eras.");
+        await imprimir("Ahora solo eres una carcasa vacía que ríe entre dientes, adorando a los mismos monstruos que intentaste detener.");
     }
 
     await pausa(2000);
-    await imprimir("TU AVENTURA EN ARKHAM TERMINA AQUÍ.", 40);
+    await imprimir("LA ORDEN DE LOS ÁNGULOS HA TRIUNFADO.", 50);
     
-    // Creamos un botón de reinicio simple
-    const btn = document.createElement('div');
-    btn.className = "opcion-terminal";
-    btn.textContent = "[ REINTENTAR ]";
-    btn.onclick = () => location.reload(); // Recarga la página
-    pantallaContenido.appendChild(btn);
+    mostraropcion("VOLVER A INTENTARLO", () => location.reload());
 }
 
 function limpiarPantalla() {

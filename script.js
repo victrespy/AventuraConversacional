@@ -11,7 +11,7 @@ const personajes = {
         nombre: "Daisy Walker",
         voluntad: 3, inteligencia: 5, fuerza: 2, agilidad: 2,
         salud_fisica: 5, salud_mental: 9,
-        objeto_inicial: "Tomo de hechizos",
+        objeto_inicial: "Lupa",
         descripcion: "Daisy es una respetada bibliotecaria de la Universidad Miskatonic que siempre había sentido que los libros eran lo más importante en su vida. Exploraba en la ficción lo que aborrecía en la vida real: horror, violencia, miedo."
     },
     "malasombra": {
@@ -182,6 +182,58 @@ async function inicioHistoria() {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //=================================================================================================================================
 // --- ACTO 1 ---
 //=================================================================================================================================
@@ -279,11 +331,16 @@ async function eventoAleatorioPeligro() {
     if (eleccion === 0) {
         await imprimir("DE REPENTE:", 70);
         await imprimir("Un susurro inhumano llena la sala...");
-        const prueba = tirarDadoMedio("voluntad");
+        let prueba;
+        if (jugador.inventario.includes("Relicario de plata")) {
+            prueba = tirarDadoFacil("voluntad");
+        } else {
+            prueba = tirarDadoMedio("voluntad");
+        }
         await pausa(1000);
         if (!prueba.exito) {
             await imprimir("...llenando tus oidos y penetrando en tu mente. El pánico te desborda.");
-            recibirDaño(0, 1);
+            await recibirDaño(0, 1);
         } else {
             await imprimir("...pero resistes el impulso de gritar y consigues taparte los oidos.");
         }
@@ -294,7 +351,7 @@ async function eventoAleatorioPeligro() {
         await pausa(1000);
         if (!prueba.exito) {
             await imprimir("...no logras verlo y el impacto te golpea con fuerza.");
-            recibirDaño(1, 0);
+            await recibirDaño(1, 0);
         } else {
             await imprimir("...pero te lanzas al suelo en el último segundo consiguiendo esquivarla.");
         }
@@ -366,7 +423,7 @@ async function escenaLibreria() {
             await pausa(500);
             if (!prueba.exito) {
                 await imprimir("Un pesado diccionario te golpea la cabeza. Eso va a dejarte una marca...");
-                recibirDaño(1, 0);
+                await recibirDaño(1, 0);
             } else {
                 await imprimir("Logras esquivar la mayoría de los libros con un movimiento rápido sin perder la compostura.");
             }
@@ -402,14 +459,19 @@ async function escenaEscritorio() {
         mostraropcion("LEER INFORMES POLICIALES", async () => {
             limpiarPantalla();
             await imprimir("Te sumerges en las descripciones gráficas de los asesinatos...");
-            const prueba = tirarDadoMedio("voluntad");
+            let prueba;
+            if (jugador.inventario.includes("Relicario de plata")) {
+                prueba = tirarDadoFacil("voluntad");
+            } else {
+                prueba = tirarDadoMedio("voluntad");
+            }
             await pausa(1000);
             if (prueba.exito) {
                 await imprimir("Consigues soportar el horror y descubres que un superviviente a los ataques se encuentra delirando en el manicomio de Arkham.");
                 estadoEstudio.leerInformes = true;
             } else {
                 await imprimir("No puedes mas... Las imágenes son demasiado. Tu mente flaquea ante tal brutalidad.");
-                recibirDaño(0, 1);
+                await recibirDaño(0, 1);
             }
             await pausa(500);
             mostraropcion("VOLVER", estudio);
@@ -436,7 +498,7 @@ async function placajePared() {
     await imprimir("Gritas de frustración y embistes la pared sólida con todo tu peso.");
     await pausa(500);
     await imprimir("EL impacto es seco y doloroso. La pared ni siquiera vibra. Eres un idiota.");
-    recibirDaño(1, 0);
+    await recibirDaño(1, 0);
     estadoEstudio.peligro++;
     mostraropcion("SOREPRENDENTEMENTE, SEGUIR AQUÍ", estudio);
 }
@@ -454,7 +516,7 @@ async function apartarAlfombra() {
         await imprimir("Con un último esfuerzo, logras despejar la zona. La pesada madera cede y dejas al descubierto una trampilla de madera vieja.");
     } else {
         await imprimir("Un mal gesto al mover el escritorio te provoca un pinchazo agudo en la espalda, pero logras apartarlo. Bajo la alfombra, aparece una trampilla.");
-        recibirDaño(1, 0); 
+        await recibirDaño(1, 0);
     }
 
     await pausa(500);
@@ -477,8 +539,17 @@ async function intentarSalir() {
 
 
 
+
+
+
+
+
+
+
+
+
 //=================================================================================================================================
-// --- ACTO 1: EL RESTO DE LA CASA (PASILLO) ---
+// --- ACTO 1: EL RESTO DE LA CASA ---
 //=================================================================================================================================
 
 let estadoPasillo = {
@@ -493,6 +564,11 @@ let estadoPasillo = {
     puertaBarreraDescubierta: false,
     vagabundoAparecido: false
 };
+
+
+// ==============================================================
+// --- PASILLO ---
+// ==============================================================
 
 async function pasillo() {
     limpiarPantalla();
@@ -541,6 +617,11 @@ async function pasillo() {
     }
 }
 
+
+// ==============================================================
+// --- OBSERVAR PUERTA ---
+// ==============================================================
+
 async function observarPuerta() {
     limpiarPantalla();
     estadoPasillo.puertaBarreraDescubierta = true;
@@ -571,6 +652,11 @@ async function observarPuerta() {
     mostraropcion("VOLVER", pasillo);
 }
 
+
+// ==============================================================
+// --- COCINA ---
+// ==============================================================
+
 async function escenaCocina() {
     limpiarPantalla();
     estadoPasillo.peligro++;
@@ -587,7 +673,7 @@ async function escenaCocina() {
                 estadoPasillo.cocinaInvestigada = true;
             } else {
                 await imprimir("Un enjambre de insectos negros brota de una lata y te muerde las manos.");
-                recibirDaño(1, 1);
+                await recibirDaño(1, 1);
             }
             await pausa(500);
             mostraropcion("VOLVER AL PASILLO", pasillo);
@@ -608,6 +694,11 @@ async function escenaCocina() {
 
     mostraropcion("VOLVER AL PASILLO", pasillo);
 }
+
+
+// ==============================================================
+// --- SALON ---
+// ==============================================================
 
 async function escenaSalon() {
     limpiarPantalla();
@@ -631,6 +722,11 @@ async function escenaSalon() {
     mostraropcion("VOLVER AL PASILLO", pasillo);
 }
 
+
+// ==============================================================
+// --- SOTANO ---
+// ==============================================================
+
 async function escenaSotano() {
     limpiarPantalla();
     estadoPasillo.peligro++;
@@ -645,6 +741,11 @@ async function escenaSotano() {
 
     mostraropcion("VOLVER AL PASILLO", pasillo);
 }
+
+
+// ==============================================================
+// --- VAGABUNDO DIMENSIONAL ---
+// ==============================================================
 
 async function aparicionVagabundo() {
     estadoPasillo.vagabundoAparecido = true;
@@ -661,7 +762,7 @@ async function aparicionVagabundo() {
             accionTomada = true;
             limpiarPantalla();
             await imprimir("¡Te has quedado paralizado por el terror! El ser te golpea con una fuerza brutal antes de que puedas moverte.");
-            recibirDaño(2, 2);
+            await recibirDaño(2, 2);
             await pausa(1500);
             pasillo();
         }
@@ -696,7 +797,7 @@ async function aparicionVagabundo() {
             estadoPasillo.peligro = 0;
         } else {
             await imprimir("...tropiezas y el ser te alcanza.");
-            recibirDaño(2, 2);
+            await recibirDaño(2, 2);
         }
         await pausa(1500);
         pasillo();
@@ -710,12 +811,73 @@ async function intentarSalirCasa() {
     await imprimir("Intentas atravesar la barrera con fuerza bruta...");
     await pausa(1000);
     await imprimir("¡BOOM! La barrera emite una descarga eléctrica que te lanza volando hacia el centro del pasillo.");
-    recibirDaño(1, 1);
+    await recibirDaño(1, 1);
     estadoPasillo.peligro += 2;
     await pausa(1500);
     estadoPasillo.puertaBarreraDescubierta = true;
     pasillo();
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 //=================================================================================================================================
 // --- ACTO 2: ARKHAM ---
@@ -723,9 +885,11 @@ async function intentarSalirCasa() {
 
 let horaActual = 19;
 let lugarRitualDescubierto = false;
+let vagabundoActo2 = false;
 let estadoArkham = {
     restauranteObservado: false,
-    roboPillado: false
+    roboPillado: false,
+    pistaCeniza: false
 };
 
 async function avanzarReloj(horas) {
@@ -790,6 +954,11 @@ async function mapaArkham() {
         mostraropcion("IR A SENTINEL HILL (FINAL)", finalRitualPronto);
     }
 
+    if (horaActual >= 21 && !vagabundoActo2){
+        vagabundoActo2 = true;
+        await aparicionVagabundoArkham();
+    }
+
     await imprimir("--- MAPA DE ARKHAM ---");
     await imprimir(`Hora actual: ${horaActual}:00 (Límite: 24:00)`);
     await pausa(500);
@@ -806,11 +975,98 @@ async function mapaArkham() {
     if (jugador.pistasActo2.anticuario) mostraropcion("TIENDA DE ANTIGÜEDADES CURWEN", escenaAnticuario);
 }
 
-// --- ESCENA: RESTAURANTE DE VELMA (CONVERSACIÓN RAMIFICADA) ---
+
+
+
+
+
+
+
+
+
+
+
+// ==============================================================
+// --- VAGABUNDO DIMENSIONAL ---
+// ==============================================================
+
+async function aparicionVagabundoArkham() {
+    limpiarPantalla();
+    await imprimir("LAS LUCES DE LAS FAROLAS PARPADEAN Y SE APAGAN...", 60);
+    await pausa(1000);
+    await imprimir("Un frío glacial recorre la calle vacía. De entre las sombras de un callejón, el aire se desgarra con un sonido de cristal roto.");
+    await imprimir("Un Vagabundo Dimensional mucho más grande que el de la casa surge frente a ti, bloqueando tu camino con sus garras translúcidas. ¡NO TIENES DÓNDE ESCONDERTE!", 40);
+    await pausa(800);
+
+    let accionTomada = false;
+
+    // Temporizador de reacción (1.2 segundos, algo más difícil que en la casa)
+    const temporizadorAtaque = setTimeout(async () => {
+        if (!accionTomada) {
+            accionTomada = true;
+            limpiarPantalla();
+            await imprimir("¡El horror te paraliza! La criatura te atraviesa el hombro con una garra gélida antes de desvanecerse en la niebla.");
+            await recibirDaño(3, 2); // Daño considerable por ser el Acto 2
+            await pausa(2000);
+            mapaArkham();
+        }
+    }, 800);
+
+    // Opción de combate si tiene el arma
+    if (jugador.inventario.includes("Pistola")) {
+        mostraropcion("DISPARAR A BOCAJARRO", async () => {
+            if (accionTomada) return;
+            accionTomada = true;
+            clearTimeout(temporizadorAtaque);
+            const idx = jugador.inventario.indexOf("Pistola");
+            jugador.inventario.splice(idx, 1);
+            renderizarInventario();
+            limpiarPantalla();
+            await imprimir("El disparo ilumina la calle. La bala impacta en el centro de la grieta dimensional, obligando a la criatura a retroceder entre chillidos.");
+            await pausa(2000);
+            mapaArkham();
+        });
+    }
+
+    mostraropcion("BUSCAR COBIJO TRAS UN COCHE", async () => {
+        if (accionTomada) return;
+        accionTomada = true;
+        clearTimeout(temporizadorAtaque);
+        limpiarPantalla();
+        await imprimir("Te lanzas tras un Ford Model T aparcado...");
+        const prueba = tirarDadoMedio("agilidad");
+        await pausa(1000);
+        if (prueba.exito) {
+            await imprimir("...el ser golpea el metal del coche, creando una abolladura imposible, pero logras rodearlo y escapar por un callejón.");
+        } else {
+            await imprimir("...tropiezas con el bordillo y el ser te alcanza en la pierna.");
+            await recibirDaño(2, 1);
+        }
+        await pausa(2000);
+        mapaArkham();
+    });
+}
+
+
+
+
+
+
+
+
+
+
+
+
+// ==============================================================
+// --- RESTAURANTE ---
+// ==============================================================
+
 visitasVelma = 0;
 async function escenaVelma() {
     limpiarPantalla();
     visitasVelma++;
+    let pedirWiskey = false;
     if (estadoArkham.roboPillado) {
         await imprimir("Al entrar, Velma te mira con odio. Joe, el encargado, te señala con el dedo y grita: '¡Ese es el ladrón que intentó robar la bolsa de dinero! ¡Fuera de aquí!'");
         await pausa(1500);
@@ -824,16 +1080,19 @@ async function escenaVelma() {
     await pausa(500);
     mostraropcion("HABLAR CON JOE", dialogoJoeInicio);
 
-    mostraropcion("PEDIR WISKEY", async () => {
-        limpiarPantalla();
-        await imprimir("Pides un trago de wiskey. Joe te sirve un vaso con un líquido oscuro y fuerte.");
-        await pausa(500);
-        await imprimir("Al beberlo, sientes un calor intenso que se extiende por tu cuerpo. El wiskey es fuerte, pero te ayuda a calmar los nervios, pero te deja un leve mareo.");
-        await pausa(500);
-        jugador.clase.salud_mental = Math.min(jugador.clase.salud_mental + 1, 9);
-        actualizarPanelInfo(jugador.clase);
-        escenaVelma();
-    });
+    if (!pedirWiskey) {
+        mostraropcion("PEDIR WISKEY", async () => {
+            pedirWiskey = true;
+            limpiarPantalla();
+            await imprimir("Pides un trago de wiskey. Joe te sirve un vaso con un líquido oscuro y fuerte.");
+            await pausa(500);
+            await imprimir("Al beberlo, sientes un calor intenso que se extiende por tu cuerpo. El wiskey es fuerte, pero te ayuda a calmar los nervios, pero te deja un leve mareo.");
+            await pausa(500);
+            jugador.clase.salud_mental = Math.min(jugador.clase.salud_mental + 1, 9);
+            actualizarPanelInfo(jugador.clase);
+            escenaVelma();
+        });
+    }
     
     if (!estadoArkham.restauranteObservado) {
         mostraropcion("OBSERVAR EL LOCAL", async () => {
@@ -853,7 +1112,7 @@ async function escenaVelma() {
                     let pruebaSigilo = tirarDadoMedio("agilidad");
                     if (!pruebaSigilo.exito) {
                         await imprimir("¡Joe te ve intentando robar la bolsa! Se levanta furioso y te echa del local.");
-                        recibirDaño(1, 0);
+                        await recibirDaño(1, 0);
                         await pausa(1500);
                         estadoArkham.roboPillado = true;
                         mapaArkham();
@@ -924,7 +1183,21 @@ async function dialogoJoeContinuar() {
     });
 }
 
-// --- OTRAS ESCENAS ---
+
+
+
+
+
+
+
+
+
+
+
+
+// ==============================================================
+// --- POLICIA ---
+// ==============================================================
 
 async function escenaPolicia() {
     limpiarPantalla();
@@ -932,7 +1205,7 @@ async function escenaPolicia() {
     await imprimir("Entras en la Comisaría y les cuentas lo que sabes. El Sheriff Anderson se ríe en tu cara.");
     await pausa(500);
     await imprimir("- ¿Monstruos invisibles? Escuche, vuelva a casa. Arkham no es lugar para locos.");
-    recibirDaño(0, 1);
+    await recibirDaño(0, 1);
     await pausa(1000);
     const prueba = tirarDadoMedio("inteligencia");
     if (prueba.exito) {
@@ -941,7 +1214,7 @@ async function escenaPolicia() {
             const pruebaSigilo = tirarDadoMedio("agilidad");
             if (!pruebaSigilo.exito) {
                 await imprimir("¡El Sheriff te ve intentando coger la pistola! Se levanta furioso y te echa de la comisaría.");
-                recibirDaño(1, 0);
+                await recibirDaño(1, 0);
                 await pausa(1500);
                 mapaArkham();
                 return;
@@ -958,25 +1231,60 @@ async function escenaPolicia() {
     mostraropcion("SALIR", mapaArkham);
 }
 
+
+
+
+
+
+
+
+
+
+
+// ==============================================================
+// --- HOSPITAL ---
+// ==============================================================
+
 async function escenaHospital() {
     limpiarPantalla();
     await avanzarReloj(1);
     await imprimir("El Hospital de Santa María es silencioso. Las enfermeras te miran con compasión.");
-    mostraropcion("DESCANSAR Y CURARSE (Cuesta 2 horas)", async () => {
+    mostraropcion("DESCANSAR Y CURARSE", async () => {
         await avanzarReloj(1);
         jugador.clase.salud_fisica = Math.min(jugador.clase.salud_fisica + 2, 9);
         jugador.clase.salud_mental = Math.min(jugador.clase.salud_mental + 1, 9);
         actualizarPanelInfo(jugador.clase);
         await imprimir("Te sientes mucho mejor, pero la noche ha avanzado peligrosamente.");
         await pausa(2000);
+        mostraropcion("HABLAR CON LA ENFERMERA", async () => {
+            await imprimir("La enfermera te escucha con mucha empatia y te cuenta unos rumores sobre un paciente que llegó hace unos días con heridas extrañas. Dijo algo sobre 'ser perseguido por sombras'.");
+            await imprimir("El paciente está en el ala este del manicomio, pero nadie se atreve a acercarse a él. Dicen que grita por las noches y que su habitación está llena de símbolos extraños.");
+            jugador.pistasActo2.manicomio = true;
+            mostraropcion("SALIR", mapaArkham);
+        });
         mostraropcion("SALIR", mapaArkham);
     });
     mostraropcion("HABLAR CON LA ENFERMERA", async () => {
         await imprimir("La enfermera te escucha con mucha empatia y te cuenta unos rumores sobre un paciente que llegó hace unos días con heridas extrañas. Dijo algo sobre 'ser perseguido por sombras'.");
         await imprimir("El paciente está en el ala este del manicomio, pero nadie se atreve a acercarse a él. Dicen que grita por las noches y que su habitación está llena de símbolos extraños.");
+        jugador.pistasActo2.manicomio = true;
         mostraropcion("SALIR", mapaArkham);
     });
 }
+
+
+
+
+
+
+
+
+
+
+
+// ==============================================================
+// --- ANTICUARIO ---
+// ==============================================================
 
 async function escenaAnticuario() {
     limpiarPantalla();
@@ -1006,7 +1314,7 @@ async function escenaAnticuario() {
                 mostraropcion("SALIR", mapaArkham);
             });
             mostraropcion("COMPRAR RELICARIO DE PLATA", async () => {
-                jugador.inventario.push("Relicario");
+                jugador.inventario.push("Relicario de plata");
                 const idx = jugador.inventario.indexOf("Bolsa de dinero");
                 jugador.inventario.splice(idx, 1);
                 actualizarPanelInfo(jugador.clase);
@@ -1018,42 +1326,578 @@ async function escenaAnticuario() {
     mostraropcion("IR A OTRO LADO", mapaArkham);
 }
 
+
+
+
+
+
+
+
+
+
+
+// ==============================================================
+// --- MUELLES DE ARKHAM ---
+// ==============================================================
+
+let alertaMuelles = 0; // Mecánica de alerta acumulativa
+let visitasMuelles = 0;
+let estadoMuelles = {
+    reciboEncontrado: false,
+    simboloDescubierto: false,
+    eterEncontrado: false
+};
+
 async function escenaMuelles() {
     limpiarPantalla();
-    await avanzarReloj(1);
-    await imprimir("Los muelles están cubiertos por una niebla espesa que oculta el agua negra.");
-    await imprimir("Encuentras cajas con el mismo símbolo que Joe describió. Dentro hay túnicas y símbolos de piedra.");
+    visitasMuelles++;
+    await avanzarReloj(1); // El tiempo avanza al explorar
+    
+    if (visitasMuelles === 1) {
+        await imprimir("La niebla en los muelles es tan espesa que casi puedes masticarla. El agua del Miskatonic golpea los pilotes con un sonido rítmico y pesado.");
+        await imprimir("Frente a ti se encuentra el Almacén 17. Varias cajas con un símbolo de una estrella de cinco puntas están apiladas fuera, custodiadas por un guarda de mirada torva.");
+    } else {
+        await imprimir("El almacén sigue igual, pero ahora estás más alerta. El guarda te mira con desconfianza cada vez que te acercas.");
+    }
+    await pausa(500);
+
+    // Ventaja de Personaje: Malasombra conoce los bajos fondos
+    if (jugador.clase.nombre === "Malasombre O'Toole") {
+        mostraropcion("USAR CONTACTOS CRIMINALES", usarContactosMuelles);
+    }
+
+    mostraropcion("FORZAR LA CERRADURA LATERAL", forzarEntradaMuelles);
+    mostraropcion("NOQUEAR AL GUARDA DE LA ENTRADA", noquearGuardaMuelles);
+    mostraropcion("SALIR DE LOS MUELLES", mapaArkham);
+}
+
+// --- RESOLUCIÓN DE ENTRADA ---
+
+async function usarContactosMuelles() {
+    limpiarPantalla();
+    await imprimir("Haces una señal silbando entre dientes. Uno de los guardias te reconoce y asiente discretamente.");
+    await imprimir("- 'Malasombra... entra rápido y no hagas ruido. Si el capataz te ve, estamos muertos los dos'.");
+    await pausa(1000);
+    interiorAlmacenMuelles();
+}
+
+async function forzarEntradaMuelles() {
+    limpiarPantalla();
+    await imprimir("Sacas tus herramientas e intentas manipular la cerradura de la puerta de servicio...");
+    const prueba = tirarDadoMedio("agilidad");
+    await pausa(1000);
+    
+    if (prueba.exito) {
+        await imprimir("La cerradura cede con un clic metálico. Te deslizas al interior sin ser visto.");
+        await pausa(1000);
+        interiorAlmacenMuelles();
+    } else {
+        alertaMuelles++; // Fallar aumenta la alerta
+        await imprimir("¡Maldición! El metal chirría demasiado fuerte y ves una linterna acercándose.");
+        await pausa(1500);
+        
+        if (alertaMuelles >= 2) {
+            await ataqueVagabundoMuelles();
+        } else {
+            escenaMuelles(); // Reintento o cambio de táctica
+        }
+    }
+}
+
+async function noquearGuardaMuelles() {
+    limpiarPantalla();
+    await imprimir("Te aproximas por la espalda al guarda. Un golpe seco debería ser suficiente...");
+    const prueba = tirarDadoMedio("fuerza");
+    await pausa(1000);
+
+    if (prueba.exito) {
+        await imprimir("El hombre cae como un fardo de patatas. Arrastras el cuerpo tras unas cajas y entras.");
+        await pausa(1000);
+        interiorAlmacenMuelles();
+    } else {
+        alertaMuelles += 2; // Un combate fallido alerta mucho más
+        await imprimir("El guarda se gira a tiempo y bloquea tu golpe. Suelta un grito antes de que logres reducirlo.");
+        await recibirDaño(1, 0); // Daño por el forcejeo
+        await imprimir("Te consigues zafar y huyes, pero el ruido ha alertado a los otros trabajadores.");
+        await pausa(1500);
+        
+        if (alertaMuelles >= 2) {
+            await ataqueVagabundoMuelles();
+        } else {
+            escenaMuelles();
+        }
+    }
+}
+
+// --- INTERIOR: INVESTIGACIÓN Y OBJETOS ---
+
+async function interiorAlmacenMuelles() {
+    limpiarPantalla();
+    await imprimir("El almacén está lleno de cajas con el símbolo de la estrella. Al fondo, ves un pequeño despacho iluminado por una lámpara de aceite.");
+    await pausa(500);
+
+    if (!estadoMuelles.reciboEncontrado) {
+        mostraropcion("REGISTRAR EL DESPACHO DEL CAPATAZ", descubrirPistasMuelles);
+    }
+    
+    if (!estadoMuelles.simboloDescubierto) {
+        mostraropcion("EXAMINAR LOS BOCETOS SOBRE LAS CAJAS", descubrirSimboloMuelles);
+    }
+
+    if (!estadoMuelles.eterEncontrado) {
+        mostraropcion("COGER FRASCO DE ÉTER DE LOS SUMINISTROS", cogerEterMuelles);
+    }
+
+    mostraropcion("SALIR DEL ALMACÉN", mapaArkham);
+}
+
+async function descubrirPistasMuelles() {
+    limpiarPantalla();
+    estadoMuelles.reciboEncontrado = true;
+    jugador.pistasActo2.anticuario = true; // Desbloquea la tienda en el mapa
+    
+    await imprimir("Encuentras un recibo de la 'Tienda de Antigüedades Curwen'. Indica la compra de 'Polvo Plateado' para un ritual inminente.");
+    await pausa(2000);
+    interiorAlmacenMuelles();
+}
+
+async function descubrirSimboloMuelles() {
+    limpiarPantalla();
+    estadoMuelles.simboloDescubierto = true;
+    await imprimir("Encuentras unos planos del ritual. Hay tres runas dibujadas, pero solo una tiene una nota al margen: 'LA ESTRELLA - La clave para invertir el flujo'.");
+    await imprimir("Pero aun no sabes donde se va a realizar");
+    await pausa(2000);
+    interiorAlmacenMuelles();
+}
+
+async function cogerEterMuelles() {
+    limpiarPantalla();
+    estadoMuelles.eterEncontrado = true;
+    
+    await imprimir("En un estante de químicos, encuentras un frasco de vidrio oscuro sellado con cera.");
+    await imprimir("Es éter puro. Un pañuelo empapado con esto podría dormir a un guarda o a cualquier estorbo sin hacer ruido.");
+    await pausa(2000);
+
+    mostraropcion("COGER EL FRASCO", async () => {
+        jugador.inventario.push("Frasco de Éter");
+        actualizarPanelInfo(jugador.clase);
+        interiorAlmacenMuelles();
+    });
+    mostraropcion("DEJARLO", interiorAlmacenMuelles);
+}
+
+// --- EVENTO DE FALLO: ATAQUE ---
+
+async function ataqueVagabundoMuelles() {
+    alertaMuelles = 0; // Reseteamos la alerta tras el ataque
+    limpiarPantalla();
+    await imprimir("¡HAS SIDO DESCUBIERTO!", 80);
+    await imprimir("El aire sobre ti se rasga y un Vagabundo Dimensional reforzado cae desde las vigas del techo.");
+    await recibirDaño(2, 2); // Recibes daño por la emboscada
+    await pausa(1000);
+    await imprimir("Huyes a ciegas por el muelle y te lanzas al agua helada para escapar de sus garras.");
     await pausa(2000);
     mapaArkham();
 }
+
+
+
+
+
+
+
+
+
+
+
+// ==============================================================
+// --- UNIVERSIDAD MISKATONIC ---
+// ==============================================================
+
+// Variables de control para esta ubicación
+let estadoMiskatonic = {
+    lupaEncontrada: false,
+    necronomiconEncontrado: false
+};
 
 async function escenaMiskatonic() {
     limpiarPantalla();
     await avanzarReloj(1);
-    await imprimir("En la Biblioteca Orne encuentras el 'Cántico de Cierre'.");
-    jugador.inventario.push("Cántico de Cierre");
-    actualizarPanelInfo(jugador.clase);
-    await pausa(2000);
-    mapaArkham();
+    await imprimir("El campus de la Universidad Miskatonic está sumido en el silencio. Te diriges a la imponente Biblioteca Orne.");
+    await pausa(500);
+
+    // Detalle de Rol: Daisy Walker trabaja aquí
+    if (jugador.clase.nombre === "Daisy Walker") {
+        await imprimir("Como bibliotecaria respetada de esta institución, tienes tus propias llaves. Abres la pesada puerta de roble sin ningún problema y te adentras en la oscuridad que tan bien conoces.");
+        await pausa(1000);
+        interiorBiblioteca();
+    } else {
+        await imprimir("La puerta principal está cerrada con llave. A través de los cristales ves a un viejo guardia de seguridad haciendo la ronda con una linterna.");
+        await pausa(500);
+        
+        mostraropcion("PASAR CON SIGILO POR UNA VENTANA", infiltracionBiblioteca);
+        mostraropcion("CONVENCER AL GUARDIA", convencerGuardia);
+        if (jugador.inventario.includes("Frasco de Éter")) {
+            mostraropcion("DROGAR AL GUARDIA CON ÉTER", async () => {
+                limpiarPantalla();
+                await imprimir("Esperas a que el guardia se acerque a la ventana, luego abres el frasco de éter y lo esparces cerca de su camino.");
+                await pausa(1000);
+                await imprimir("El guardia tose y se tambalea, cayendo al suelo sin conocimiento.");
+                await pausa(1000);
+
+                // Elimina el éter del inventario
+                const idx = jugador.inventario.indexOf("Frasco de Éter");
+                jugador.inventario.splice(idx, 1);
+                actualizarPanelInfo(jugador.clase);
+                interiorBiblioteca();
+            });
+        }
+        mostraropcion("SALIR AL MAPA", mapaArkham);
+    }
 }
+
+// --- OBSTÁCULOS DE ENTRADA ---
+
+async function infiltracionBiblioteca() {
+    limpiarPantalla();
+    await imprimir("Encuentras una ventana semiabierta en el callejón e intentas colarte sin hacer ruido...");
+    const prueba = tirarDadoMedio("agilidad");
+    await pausa(1000);
+    
+    if (prueba.exito) {
+        await imprimir("Aterrizas suavemente sobre una alfombra en el interior, justo cuando la luz de la linterna del guardia pasa de largo. Estás dentro.");
+        await pausa(1000);
+        interiorBiblioteca();
+    } else {
+        await imprimir("¡CRASH! Al pasar, tiras un pesado jarrón decorativo que se hace añicos.");
+        await imprimir("El guardia grita alarmado. Presa del pánico, saltas de vuelta al callejón cayendo de bruces y rasgándote la ropa.");
+        await recibirDaño(1, 0); // Daño físico por la caída
+        await pausa(1000);
+        await imprimir("Has llamado demasiado la atención. Tendrás que volver más tarde.");
+        await pausa(2000);
+        mapaArkham();
+    }
+}
+
+async function convencerGuardia() {
+    limpiarPantalla();
+    await imprimir("Golpeas el cristal para llamar su atención. Te inventas una excusa sobre unos documentos de vital importancia que el director necesita de inmediato.");
+    const prueba = tirarDadoDificil("inteligencia"); // Es difícil engañar a alguien a estas horas
+    await pausa(1000);
+    
+    if (prueba.exito) {
+        await imprimir("El anciano parpadea, confuso, pero tu aplomo le convence. Murmura algo sobre 'los raros horarios de los académicos' y te abre la puerta.");
+        await pausa(1000);
+        interiorBiblioteca();
+    } else {
+        await imprimir("El guardia te enfoca con la linterna a los ojos. 'A otro perro con ese hueso. ¡Lárguese o llamo al Sheriff Anderson!'");
+        await pausa(2000);
+        mapaArkham();
+    }
+}
+
+// --- DENTRO DE LA BIBLIOTECA ---
+
+async function interiorBiblioteca() {
+    limpiarPantalla();
+    await imprimir("El olor a papel viejo, polvo y madera barnizada te envuelve. Las estanterías parecen laberintos diseñados para perderse.");
+    await pausa(500);
+
+    if (!estadoMiskatonic.lupaEncontrada) {
+        mostraropcion("REVISAR EL MOSTRADOR DE RECEPCIÓN", revisarMostrador);
+    }
+    
+    if (!estadoMiskatonic.necronomiconEncontrado) {
+        mostraropcion("BAJAR A LA SECCIÓN RESTRINGIDA", explorarRestringida);
+    }
+
+    mostraropcion("SALIR DE LA BIBLIOTECA", mapaArkham);
+}
+
+async function revisarMostrador() {
+    limpiarPantalla();
+    estadoMiskatonic.lupaEncontrada = true;
+    await imprimir("Detrás del mostrador principal, rebuscas en los cajones de los bibliotecarios.");
+    await pausa(500);
+    await imprimir("Encuentras una vieja pero impecable Lupa con mango de marfil. Puede venirte muy bien para observar detalles que a simple vista pasarían desapercibidos.");
+    
+    jugador.inventario.push("Lupa");
+    actualizarPanelInfo(jugador.clase);
+    
+    await pausa(1500);
+    interiorBiblioteca();
+}
+
+async function explorarRestringida() {
+    limpiarPantalla();
+    estadoMiskatonic.necronomiconEncontrado = true;
+    
+    await imprimir("Bajas por una escalera de caracol hasta la Sección Restringida. El aire aquí es más denso y frío.");
+    await pausa(800);
+    await imprimir("Al fondo de la sala, sobre un atril de hierro, descansa un libro inmenso encuadernado en una piel pálida y repulsiva.");
+    await imprimir("Es el legendario Necronomicón, escrito por el árabe loco Abdul Alhazred.");
+    await pausa(1500);
+    
+    // Prueba de Cordura al interactuar con el libro
+    await imprimir("Al poner tus manos sobre él, unas voces susurrantes llenan tu mente de golpe...");
+    let prueba;
+    if (jugador.inventario.includes("Relicario de plata")) {
+        prueba = tirarDadoFacil("voluntad");
+    } else {
+        prueba = tirarDadoMedio("voluntad");
+    }
+    await pausa(1000);
+    
+    if (prueba.exito) {
+        await imprimir("Aprietas los dientes y bloqueas las voces. Abres el libro y hojeas sus páginas hasta encontrar exactamente lo que buscabas: el temido 'Cántico de Cierre'.");
+    } else {
+        await imprimir("El conocimiento prohibido que emana de sus páginas es demasiado para una mente humana. Sientes vértigo y náuseas.");
+        await recibirDaño(0, 1);
+        await imprimir("Aún así, logras sobreponerte lo suficiente para encontrar el pasaje del 'Cántico de Cierre'.");
+    }
+    
+    await pausa(1000);
+    
+    // Gestión del Inventario
+    jugador.inventario.push("Necronomicón");
+    
+    // Si el jugador tenía el fascículo del Acto 1, lo borramos porque ahora tiene el libro completo
+    if (jugador.inventario.includes("Fasciculo del Necronomicon")) {
+        jugador.inventario = jugador.inventario.filter(item => item !== "Fasciculo del Necronomicon");
+    }
+    
+    actualizarPanelInfo(jugador.clase);
+    
+    await pausa(2500);
+    interiorBiblioteca();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ==============================================================
+// --- MANICOMIO DE ARKHAM ---
+// ==============================================================
 
 async function escenaManicomio() {
     limpiarPantalla();
     await avanzarReloj(1);
-    await imprimir("Un loco grita: '¡A las doce! ¡Cuando las sombras no tengan dueño!'");
-    await imprimir("[HORA CONFIRMADA DEL RITUAL: 24:00]");
-    await pausa(2000);
-    mapaArkham();
+    await imprimir("El imponente y sombrío edificio del Manicomio de Arkham se alza frente a ti bajo la niebla.");
+    await pausa(500);
+    await imprimir("Entras a la recepción. Un enfermero de aspecto severo vigila la gruesa puerta de acero que da acceso a la zona de pacientes peligrosos.");
+    await imprimir("Sabes que el superviviente de los bosques del que hablaban los informes policiales está ahí dentro, pero no dejan pasar a visitas a estas horas.");
+    await pausa(1000);
+    
+    mostraropcion("INTENTAR PASAR CON SIGILO", infiltracionManicomio);
+    
+    // Detalle de rol: Roland Banks es agente del FBI, no necesita mentir.
+    if (jugador.clase.nombre === "Roland Banks") {
+        mostraropcion("MOSTRAR PLACA DEL FBI", hablarEnfermeroRoland);
+    } else {
+        mostraropcion("MENTIR: 'SOY DETECTIVE'", hablarEnfermeroMentira);
+    }
+
+    if (jugador.inventario.includes("Frasco de Éter")) {
+        mostraropcion("DROGAR AL ENFERMERO CON ÉTER", async () => {
+            limpiarPantalla();
+            await imprimir("Esperas a que el enfermero se acerque a la puerta, luego abres el frasco de éter y lo esparces cerca de su camino.");
+            await pausa(1000);
+            await imprimir("El enfermero tose y se tambalea, cayendo al suelo sin conocimiento.");
+            await pausa(1000);
+
+            // Elimina el éter del inventario
+            const idx = jugador.inventario.indexOf("Frasco de Éter");
+            jugador.inventario.splice(idx, 1);
+            actualizarPanelInfo(jugador.clase);
+            pasillosManicomio();
+        });
+    }
+    
+    mostraropcion("SALIR DE ALLÍ", mapaArkham);
+}
+
+// --- RESOLUCIÓN DEL OBSTÁCULO ---
+
+async function infiltracionManicomio() {
+    limpiarPantalla();
+    await imprimir("Esperas escondido a que el enfermero se gire a rellenar unos historiales médicos e intentas escabullirte...");
+    const prueba = tirarDadoMedio("agilidad");
+    await pausa(1000);
+    
+    if (prueba.exito) {
+        await imprimir("Eres rápido como una sombra. Logras deslizarte por la puerta metálica antes de que se cierre del todo sin hacer un solo ruido.");
+        await pausa(1000);
+        pasillosManicomio();
+    } else {
+        await imprimir("Calculas mal el tiempo y la pesada puerta rechína delatándote.");
+        await imprimir("El enfermero te agarra violentamente del cuello del abrigo. '¡Eh, tú! ¡Aquí no se puede entrar!'");
+        await recibirDaño(1, 0); // Te llevas un buen empujón
+        await imprimir("Te echan a la calle de malas maneras.");
+        await pausa(2000);
+        mapaArkham();
+    }
+}
+
+async function hablarEnfermeroRoland() {
+    limpiarPantalla();
+    await imprimir("Sacas tu placa del FBI y la golpeas contra el mostrador con autoridad. 'Aparta, hijo. Asuntos federales'.");
+    await pausa(1000);
+    await imprimir("El enfermero traga saliva, asiente nerviosamente y desbloquea la puerta sin hacer preguntas.");
+    await pausa(1000);
+    pasillosManicomio();
+}
+
+async function hablarEnfermeroMentira() {
+    limpiarPantalla();
+    await imprimir("Adoptas una postura firme y le aseguras que vienes de parte del Sheriff Anderson para un interrogatorio de máxima urgencia.");
+    const prueba = tirarDadoMedio("inteligencia");
+    await pausa(1000);
+    
+    if (prueba.exito) {
+        await imprimir("El enfermero duda un segundo rascándose la cabeza, pero tu labia es convincente. Finalmente asiente y te abre la puerta.");
+        await pausa(1000);
+        pasillosManicomio();
+    } else {
+        await imprimir("El enfermero te mira de arriba a abajo con desprecio. 'Anderson me habría avisado por teléfono. Lárguese antes de que llame a la policía de verdad'.");
+        await imprimir("No te queda más remedio que dar media vuelta.");
+        await pausa(2000);
+        mapaArkham();
+    }
+}
+
+// --- DENTRO DE LA ZONA RESTRINGIDA ---
+
+async function pasillosManicomio() {
+    limpiarPantalla();
+    await imprimir("Avanzas por el ala este. El ambiente aquí es helado y los lamentos ahogados resuenan tras las puertas acolchadas.");
+    await pausa(800);
+    await imprimir("Llegas a la celda del superviviente. Está acurrucado en una esquina, temblando compulsivamente.");
+    await pausa(1000);
+    
+    // PISTA PARA EL ACTO 3: LA CENIZA
+    await imprimir("Notas algo peculiar: hay una gruesa línea de ceniza gris esparcida por todo el umbral de su puerta.");
+    await imprimir("Uno de los pacientes murmura sin cesar, meciéndose: 'La ceniza... la ceniza de los fuegos puros... ellos no pueden cruzarla... sus garras no la tocan...'");
+    await pausa(1500);
+    await imprimir("Quizás la ceniza garantiza la seguridad, pero son los desvarios de un loco.", 20);
+    await pausa(1000);
+    estadoArkham.pistaCeniza = true;
+
+    mostraropcion("INTERROGAR AL PACIENTE", interrogatorioPaciente);
+    mostraropcion("VOLVER A LA CALLE", mapaArkham);
+}
+
+// --- EL INTERROGATORIO (LA PRUEBA) ---
+
+async function interrogatorioPaciente() {
+    limpiarPantalla();
+    await imprimir("Te acercas a los barrotes. Le exiges que te cuente qué están tramando esos seres y la secta de Arkham.");
+    await pausa(800);
+    await imprimir("El paciente deja de mecerse. Levanta la cabeza lentamente. Sus ojos están vacíos, inyectados en sangre.");
+    await pausa(500);
+    await imprimir("De repente, se abalanza contra los barrotes y empieza a gritar. Sus alaridos no son solo sonido, proyectan visiones de horrores cósmicos directamente en tu mente.");
+    
+    let prueba;
+    if (jugador.inventario.includes("Relicario de plata")) {
+        await imprimir("El relicario de plata vibra con una energía protectora, ayudándote a mantener la concentración.");
+        prueba = tirarDadoFacil("voluntad");
+    } else {
+        prueba = tirarDadoMedio("voluntad");
+    }
+    await pausa(1500);
+    
+    if (prueba.exito) {
+        await imprimir("Soportas el torrente de imágenes grotescas. Te agarras a los barrotes y le obligas a terminar la frase.");
+        await imprimir("El loco aúlla con claridad: ¡A LAS DOCE! ¡EL UMBRAL SE ABRE CUANDO LAS SOMBRAS NO TENGAN DUEÑO!");
+        await pausa(1000);
+        await imprimir("¡A LAS DOCE OCURRIRA EL HORROR Y VENDRÁ A POR MI!", 50);
+        await pausa(2500);
+        mapaArkham();
+    } else {
+        await imprimir("Las visiones de ángulos imposibles y oscuridad infinita te sobrepasan. Sientes que tu cerebro va a estallar.");
+        await recibirDaño(0, 2);
+        await imprimir("Te tapas los oídos aterrorizado y huyes corriendo por el pasillo hacia la calle sin mirar atrás.");
+        await pausa(2500);
+        mapaArkham();
+    }
 }
 
 
-// ==============================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ====================================================================================================================================
 // --- ACTO 3: EL RITUAL EN SENTINEL HILL ---
-// ==============================================================
+// ====================================================================================================================================
 
 async function finalRitualPronto() {
     limpiarPantalla();
-    await imprimir("ACTO 3: EL UMBRAL DE LA LOCURA", 70);
+    await imprimir("ACTO 3: EL RITUAL", 70);
     await pausa(1000);
     await imprimir("Subes la ladera de Sentinel Hill. El aire vibra con una frecuencia que hace que tus dientes castañeen.");
     await imprimir("Ves el círculo de menhires. Los cultistas entonan un cántico que desgarra el espacio.");
@@ -1061,124 +1905,240 @@ async function finalRitualPronto() {
     escenaAscenso();
 }
 
-// Escena 1: Sigilo y Observación
+
+
+
+
+
+
 async function escenaAscenso() {
     limpiarPantalla();
-    await imprimir("Debes acercarte al altar sin ser detectado por los Vagabundos que patrullan la zona.");
-    await imprimir("Ves tres senderos posibles entre las rocas.");
+    await imprimir("La ladera es un laberinto de rocas afiladas y niebla púrpura. El cántico de los cultistas arriba suena como un trueno constante.");
+    await imprimir("Ves tres senderos...");
+    await imprimir("El sendero de la izquierda tiene la hierba aplastada, como si alguien o algo hubiera pasado por allí recientemente.");
+    await imprimir("El sendero central tiene un rastro de ceniza gris que parece inalterado.");
+    await imprimir("El sendero de la derecha es extrañamente limpio, sin ni una sola hoja o piedra fuera de lugar.");
+    await pausa(1500);
     
-    mostraropcion("SENDERO IZQUIERDO (Hierba aplastada)", async () => {
-        await imprimir("Un Vagabundo Dimensional surge de la nada. ¡Te ha detectado!");
-        recibirDaño(2, 2);
-        await avanzarReloj(1); 
-        await imprimir("Logras escapar herido hacia el altar.");
+    mostraropcion("SENDERO IZQUIERDO", async () => {
+        limpiarPantalla();
+        if (jugador.inventario.includes("Frasco de Éter")) {
+            await imprimir("Un Vagabundo surge de la nada, pero eres más rápido. Rompes el frasco de éter contra el suelo.");
+            await imprimir("La criatura se tambalea confundida por los vapores químicos, dándote tiempo para correr hacia la cima.");
+            // Gastar el éter
+            const idx = jugador.inventario.indexOf("Frasco de Éter");
+            jugador.inventario.splice(idx, 1);
+            actualizarPanelInfo(jugador.clase);
+            await pausa(1500);
+            escenaAltar();
+        } else {
+            await imprimir("¡Un Vagabundo surge del vacío y te alcanza con sus garras!");
+            await recibirDaño(2, 2);
+            await avanzarReloj(1);
+            escenaAltar();
+        }
+    });
+    
+    mostraropcion("SENDERO CENTRAL", async () => {
+        limpiarPantalla();
+        if (!estadoArkham.pistaCeniza) {
+            await imprimir("El sendero de la ceniza parece seguro, pero no entiendes por qué. ¿Qué clase de ritual requiere ceniza?");
+            await imprimir("Aun así, no ves ningún peligro inmediato, así que decides seguirlo.");
+        } else {
+            await imprimir("Recuerdas los desvaríos del loco: 'La ceniza de los fuegos puros... ellos no pueden cruzarla'.");
+            await imprimir("Caminas con paso firme. Los Vagabundos se agitan en la oscuridad pero no se atreven a tocar el rastro gris. Llegas a la cima ileso.");
+        }
+        await pausa(1500);
         escenaAltar();
     });
 
-    mostraropcion("SENDERO CENTRAL (Rastro de ceniza gris)", async () => {
-        await imprimir("Sigues el rastro de ceniza, el mismo que viste en tu casa. Sabes que aquí la membrana es débil.");
-        await imprimir("Logras rodear a las criaturas sin que noten tu presencia.");
-        escenaAltar();
-    });
-
-    mostraropcion("SENDERO DERECHO (Extrañamente limpio)", async () => {
-        await imprimir("El sendero parece seguro, pero una trampa mística te atrapa.");
-        recibirDaño(1, 1);
+    mostraropcion("SENDERO DERECHO", async () => {
+        limpiarPantalla();
+        await imprimir("Parece el camino más fácil, pero es una trampa de la Orden.");
+        await imprimir("La realidad se distorsiona y te lanza contra las rocas.");
+        await recibirDaño(1, 1);
         await avanzarReloj(1);
         escenaAltar();
     });
 }
 
-// Escena 2: El Sello de las Piedras
+
+
+
+
+
+let visitasAltar = 0; // Para controlar la mecánica de reintentos
 async function escenaAltar() {
     limpiarPantalla();
-    await imprimir("Estás frente al altar. Los cultistas están en trance. La Puerta está al 90%.");
-    await imprimir("Hay tres piedras rúnicas que canalizan la energía. Debes desactivarlas.");
-
-    if (jugador.inventario.includes("Necronomicón")) {
-        await imprimir("El fragmento del Necronomicón en tu bolsillo empieza a brillar con una luz mortecina.");
-        await imprimir("- Los símbolos de los Muelles... - recuerdas -. El primero es la Estrella.");
+    visitasAltar++;
+    if (visitasAltar === 1) {
+        await imprimir("Estás frente al altar de piedra negra. Hay una barrera rodeando el círculo de menhires como la que se encontraba en la puerta de la casa de Armitage. Cinco runas diferentes brillan con una luz intermitente alrededor del círculo de menhires.");
+        await imprimir("Sientes que solo una de ellas puede invertir la polaridad del ritual antes de que el portal se estabilice.");
+    } else {
+        await imprimir("El cántico de los cultistas se intensifica. El portal está a punto de abrirse por completo. Debes actuar rápido, a pesar del dolor.");
     }
 
-    mostraropcion("ACTIVAR SÍMBOLOS (Inteligencia)", async () => {
-        const prueba = tirarDadoDificil("inteligencia");
-        if (prueba.exito) {
-            await imprimir("Consigues invertir el flujo de energía. Los cultistas gritan de dolor mientras el portal retrocede.");
-            escenaFinal();
-        } else {
-            await imprimir("Una descarga eléctrica te lanza hacia atrás. El ritual avanza.");
-            recibirDaño(2, 0);
-            await avanzarReloj(1);
-            escenaFinal();
-        }
+    // Definición de los símbolos
+    const simbolos = [
+        { nombre: "LA ESTRELLA DE CINCO PUNTAS", correcto: true },
+        { nombre: "EL OJO DE UNA SERPIENTE", correcto: false },
+        { nombre: "LA RUNA DESCONOCIDA", correcto: false },
+        { nombre: "EL CRÁNEO DE CABRA", correcto: false },
+        { nombre: "LA LUNA LLENA", correcto: false }
+    ];
+
+    simbolos.forEach(simbolo => {
+        let etiqueta = simbolo.nombre;
+
+        mostraropcion(etiqueta, async () => {
+            limpiarPantalla();
+            if (simbolo.correcto) {
+                await imprimir("Al tocar la runa de la ESTRELLA, un fulgor blanco recorre las líneas de energía y la barrera cae con un estruendoso sonido.");
+                await imprimir("El cántico de los cultistas se transforma en gritos de agonía mientras el portal empieza a colapsar sobre sí mismo.");
+                await pausa(1500);
+                escenaFinal();
+            } else {
+                await imprimir(`Tocas el símbolo de ${simbolo.nombre}... pero el aire estalla en una descarga roja.`);
+                await imprimir("No es el símbolo correcto. La energía mística te quema las manos y el ritual se acelera.");
+                await recibirDaño(1, 1);
+                await imprimir("A pesar del dolor, intentas tocar otra runa.");
+                await pausa(1500);
+                escenaAltar();
+            }
+        });
     });
 }
 
-// Escena 3: El Último Cántico
+
+
+
+
+
+
+
+
 async function escenaFinal() {
     limpiarPantalla();
-    await imprimir("El líder de la Orden te ve. Alza una daga de obsidiana.");
-    await imprimir("- ¡Demasiado tarde, mortal! ¡Aquel de los Ángulos ya está aquí! -");
+    await imprimir("El Líder de la Orden se interpone entre tú y el portal. Sus manos están manchadas de la sangre del sacrificio.");
+    await imprimir("- '¡Es inútil! ¡Los hilos del destino ya han sido cortados!' - brama mientras alza su daga.");
     await pausa(1000);
 
-    if (jugador.inventario.includes("Cántico de Cierre")) {
+    mostraropcion("EMBESTIR AL LÍDER Y ROMPER EL CÍRCULO", async () => {
+        limpiarPantalla();
+        await imprimir("Te lanzas con un rugido contra el líder, ignorando el peligro, para derribarlo y desordenar los objetos rituales.");
+        
+        // Requiere una prueba difícil de Fuerza o Agilidad
+        const prueba = tirarDadoDificil(jugador.clase.fuerza > jugador.clase.agilidad ? "fuerza" : "agilidad");
+        await pausa(1500);
+
+        if (prueba.exito) {
+            await imprimir("Logras placar al líder justo antes de que termine la invocación. El círculo se rompe y la energía acumulada lo consume a él en tu lugar.");
+            await victoriaFinal();
+        } else {
+            await imprimir("El líder esquiva tu embestida con una agilidad sobrenatural y te clava la daga de obsidiana en el costado.");
+            await recibirDaño(3, 0);
+            await imprimir("Mientras caes al suelo, ves cómo el portal se abre por completo.");
+            await finalYogSothoth();
+        }
+    });
+
+    // Opción: Necronomicón
+    if (jugador.inventario.includes("Necronomicón")) {
         mostraropcion("RECITAR EL CÁNTICO DE CIERRE", async () => {
             limpiarPantalla();
-            await imprimir("Empiezas a leer las palabras prohibidas. El aire se vuelve sólido.");
-            const prueba = tirarDadoMedio("voluntad");
-            if (prueba.exito) {
-                victoriaFinal();
+            await imprimir("Abres el libro de piel humana. Las palabras prohibidas vibran en el aire.");
+            let prueba;
+            if (jugador.inventario.includes("Relicario de plata")) {
+                await imprimir("El relicario de tu cuello brilla, dándote la paz mental necesaria.");
+                prueba = tirarDadoFacil("voluntad");
             } else {
-                await imprimir("Tu voz se quiebra por el horror. La energía del portal te consume.");
-                finalYogSothoth();
+                prueba = tirarDadoMedio("voluntad");
             }
+            if (prueba.exito) { victoriaFinal(); } else { finalYogSothoth(); }
         });
     }
 
     if (jugador.inventario.includes("Pistola")) {
-        mostraropcion("DISPARAR AL LÍDER", async () => {
+        mostraropcion("DISPARAR AL CORAZÓN DEL LÍDER", async () => {
             limpiarPantalla();
-            await imprimir("El estruendo de la pistola interrumpe el cántico. El líder cae, pero el portal se vuelve inestable.");
-            const prueba = tirarDadoDificil("fuerza");
-            if (prueba.exito) {
-                await imprimir("Aprovechas el caos para empujar el altar. El Umbral colapsa.");
-                victoriaFinal();
-            } else {
-                await imprimir("Los Vagabundos te despedazan antes de que puedas terminar el trabajo.");
-                finalizarPartida();
-            }
+            await imprimir("El estruendo de la pólvora silencia los cánticos. El líder cae hacia atrás, dentro del vórtice.");
+            const prueba = tirarDadoMedio("fuerza");
+            if (prueba.exito) { victoriaFinal(); } else { finalizarPartida(); }
         });
     }
 
     mostraropcion("SACRIFICIO HEROICO", async () => {
         limpiarPantalla();
-        await imprimir("Te lanzas al centro del vórtice para romper el círculo con tu propia presencia.");
-        await imprimir("La realidad se corrige con un estallido insoportable.");
-        await pausa(2000);
-        await imprimir("Salvaste el mundo... pero a un coste que nadie conocerá jamás.");
-        await imprimir("--- FINAL SACRIFICADO ---");
-        mostraropcion("REINTENTAR", () => location.reload());
+        finalSacrificio();
     });
 }
 
-// --- FINALES ---
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 async function victoriaFinal() {
     limpiarPantalla();
-    await imprimir("EL PORTAL SE CIERRA CON UN TRUENO QUE SACUDE LA TIERRA.", 80);
+    await imprimir("UN TRUENO ENSORDECEDOR SACUDE LOS CIMIENTOS DE LA REALIDAD.", 40);
     await pausa(1000);
-    await imprimir("Los cultistas desaparecen en el vacío. Arkham vuelve a la normalidad.");
-    await imprimir("Has detenido a la Orden de los Ángulos. Por ahora.");
+    await imprimir("El vórtice sobre Sentinel Hill empieza a succionarse a sí mismo. Los colores imposibles se desvanecen, dejando paso al negro natural de la noche.");
+    await imprimir("Los cultistas que aún quedan en pie huyen despavoridos hacia el bosque, sus cánticos convertidos en lamentos de terror.");
+    await pausa(1500);
+    
+    await imprimir("Sientes una presión inmensa desaparecer de tu pecho. El aire vuelve a oler a lluvia y a tierra mojada, no a azufre y descomposición.");
+    await imprimir("Miras hacia Arkham desde la cima. Las luces de la ciudad brillan ajenas al horror que acabas de detener. Nadie sabrá nunca tu nombre, ni lo que hiciste hoy aquí.");
+    await pausa(2000);
+    
+    await imprimir("Eres el guardián solitario en el umbral del abismo. Una figura cansada que camina de vuelta a casa bajo la luz de una luna que, por fin, vuelve a ser solo una roca en el cielo.");
     await imprimir("--- VICTORIA ---", 100);
-    mostraropcion("REINTENTAR", () => location.reload());
+    
+    mostraropcion("ESCRIBIR TU PROPIO ARCHIVO (REINTENTAR)", () => location.reload());
 }
 
 async function finalYogSothoth() {
     limpiarPantalla();
-    await imprimir("EL RELOJ MARCA LAS 00:00.", 120);
+    await imprimir("EL RELOJ MARCA LAS 00:00. EL TIEMPO SE DETIENE.", 80);
     await pausa(1000);
-    await imprimir("Yog-Sothoth ha llegado. La Tierra no es más que un grano de arena en su ojo infinito.");
-    await imprimir("Tu cuerpo se desintegra. EL MUNDO HA SIDO BORRADO.");
+    await imprimir("El cielo no se abre; se desgarra como una tela vieja. De la brecha surgen esferas de luz iridiscente y ángulos que tu cerebro no puede procesar.");
+    await imprimir("Es Yog-Sothoth. Aquel que es la Puerta y la Llave. Aquel en quien el pasado, el presente y el futuro son uno solo.");
+    await pausa(1500);
+    
+    await imprimir("Intentas gritar, pero tus cuerdas vocales se deshacen en ceniza plateada. Tu cuerpo empieza a extenderse a través de dimensiones infinitas.");
+    await imprimir("Arkham, la Tierra y toda la humanidad desaparecen en un parpadeo cósmico. No hay dolor, solo la comprensión absoluta de que vuestra existencia nunca fue más que un error en el ojo de un dios ciego.");
     await pausa(2000);
-    finalizarPartida();
+    
+    await imprimir("LA REALIDAD HA SIDO BORRADA.", 120);
+    
+    const btn = document.createElement('div');
+    btn.className = "opcion-terminal";
+    btn.textContent = "[ ACEPTAR EL OLVIDO (REINTENTAR) ]";
+    btn.onclick = () => location.reload();
+    pantallaContenido.appendChild(btn);
+}
+
+async function finalSacrificio() {
+    limpiarPantalla();
+    await imprimir("Entiendes el precio. La brecha no se cerrará con cánticos, sino con un alma.", 40);
+    await pausa(1000);
+    await imprimir("Te lanzas al centro del vórtice. Por un instante, ves todas las estrellas del universo y el vacío que hay entre ellas.");
+    await imprimir("Tu sacrificio genera una onda de choque que sella la grieta desde dentro. Sentinel Hill queda en silencio, marcado por una explosión de luz blanca que se ve desde kilómetros de distancia.");
+    await pausa(2000);
+    
+    await imprimir("Días después, en la Universidad Miskatonic, una estantería vacía recordará tu nombre en silencio. Arkham está a salvo, pero tú ya no perteneces a este mundo.");
+    await imprimir("--- FINAL SACRIFICADO ---", 80);
+    mostraropcion("REINTENTAR", () => location.reload());
 }
