@@ -1306,13 +1306,6 @@ async function escenaAnticuario() {
                 actualizarPanelInfo(jugador.clase);
                 mostraropcion("SALIR", mapaArkham);
             });
-            mostraropcion("COMPRAR CAMARA FOTOGRAFICA", async () => {
-                jugador.inventario.push("Cámara");
-                const idx = jugador.inventario.indexOf("Bolsa de dinero");
-                jugador.inventario.splice(idx, 1);
-                actualizarPanelInfo(jugador.clase);
-                mostraropcion("SALIR", mapaArkham);
-            });
             mostraropcion("COMPRAR RELICARIO DE PLATA", async () => {
                 jugador.inventario.push("Relicario de plata");
                 const idx = jugador.inventario.indexOf("Bolsa de dinero");
