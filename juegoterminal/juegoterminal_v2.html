@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TERMINAL SYSTEM v9.1.1 - NOVA CORP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --term-green: #00ff41;
+            --term-red: #ff3e3e;
+            --term-bg: #0d0d0d;
+            --term-glow: 0 0 10px rgba(0, 255, 65, 0.4);
+        }
+
+        body, html {
+            background-color: var(--term-bg);
+            color: var(--term-green);
+            font-family: 'Fira Code', monospace;
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+            text-shadow: var(--term-glow);
+            transition: background-color 0.5s ease;
+        }
+
+        body.virus-mode {
+            background-color: #1a0505;
+            color: var(--term-red);
+            text-shadow: 0 0 10px rgba(255, 62, 62, 0.4);
+        }
+
+        body::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 10;
+            background-size: 100% 4px, 3px 100%;
+            pointer-events: none;
+        }
+
+        #terminal-container {
+            padding: 2rem;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            scrollbar-width: none;
+            z-index: 1;
+        }
+
+        #terminal-container::-webkit-scrollbar { display: none; }
+
+        .command-output { margin-bottom: 1rem; white-space: pre-wrap; word-break: break-all; line-height: 1.4; }
+        .prompt { color: #fff; margin-right: 10px; font-weight: bold; }
+        .input-line { display: flex; align-items: center; padding-bottom: 100px; }
+        
+        input {
+            background: transparent; border: none; color: inherit;
+            font-family: 'Fira Code', monospace; font-size: 1rem;
+            outline: none; flex-grow: 1; text-shadow: inherit;
+        }
+
+        .ai-msg {
+            color: #00d4ff; border-left: 3px solid #00d4ff;
+            padding-left: 1rem; margin: 1rem 0; animation: flicker 0.15s infinite alternate;
+        }
+
+        .virus-msg {
+            color: var(--term-red); border-left: 3px solid var(--term-red);
+            padding-left: 1rem; margin: 1rem 0; font-weight: bold;
+            animation: flicker 0.1s infinite;
+        }
+
+        @keyframes flicker { 0% { opacity: 0.8; } 100% { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div id="terminal-container">
+        <div id="output"></div>
+        <div class="input-line">
+            <span class="prompt">admin@nova-corp:<span id="path-display">/home/admin</span>$</span>
+            <input type="text" id="command-input" autofocus autocomplete="off" spellcheck="false">
+        </div>
+    </div>
+
+    <script>
+        const outputArea = document.getElementById('output');
+        const inputField = document.getElementById('command-input');
+        const pathDisplay = document.getElementById('path-display');
+        
+        let currentPath = '/home/admin';
+        let storyState = 'START'; 
+        let unlockedCommands = ['ls', 'cd', 'cat', 'clear', 'whoami', 'help'];
+        
+        let commandHistory = [];
+        let historyIndex = -1;
+
+        const fileSystem = {
+            '/': { type: 'dir', content: {
+                'home': { type: 'dir', content: {
+                    'admin': { type: 'dir', content: {
+                        'README.txt': { type: 'file', content: 'AVISO: Intrusión detectada.\nElimina el virus antes de que sea tarde' },
+                        'notas': { type: 'dir', content: {
+                            'emergencia.txt': { type: 'file', content: 'He escondido los permisos avanzados en /sys/kernel/drivers/legacy.' }
+                        }}
+                    }},
+                    'invitado': { type: 'dir', content: {
+                        'descargas': { type: 'dir', content: {
+                            'herramientas_red.zip': { type: 'file', isZip: true, content: {
+                                'tutorial_grep.txt': { type: 'file', content: 'COMANDOS DESBLOQUEADOS: mv, grep.\nUsa mv para mover archivos.\nUsa grep [texto] [archivo] para filtrar información.' }
+                            }}
+                        }}
+                    }}
+                }},
+                'sys': { type: 'dir', content: {
+                    'kernel': { type: 'dir', content: {
+                        'drivers': { type: 'dir', content: {
+                            'legacy': { type: 'dir', content: {
+                                'access.man': { type: 'file', content: 'DESBLOQUEADO: mkdir, chmod, rm.\n- mkdir: Crear carpetas.\n- chmod +x: Desbloquear archivos.\n- rm: Eliminar archivos.' }
+                            }}
+                        }}
+                    }},
+                    'seguridad': { type: 'dir', content: {
+                        'manuales': { type: 'dir', content: {
+                            'unzip.man': { type: 'file', content: 'COMANDO DESBLOQUEADO: unzip.\nUsa unzip [archivo.zip] para extraer datos.' }
+                        }}
+                    }}
+                }},
+                'usr': { type: 'dir', content: {
+                    'ai_core': { type: 'dir', content: {
+                        'protocol_ECHO.exe': { type: 'file', content: '[NÚCLEO IA EN ESPERA]' }
+                    }}
+                }},
+                'var': { type: 'dir', content: {
+                    'logs': { type: 'dir', content: {
+                        'security.log': { type: 'file', content: '10:00 - OK\n10:05 - OK\n10:30 - ALERTA: Archivo CORRUPTO detectado en /mnt/backup/corrupto.tmp\n10:45 - ERROR_CODE: 99x-FIX-PID-666\n11:00 - Buffer lleno.' }
+                    }}
+                }},
+                'mnt': { type: 'dir', content: {
+                    'backup': { type: 'dir', content: {
+                        'vaccine.dat': { type: 'file', permissions: '---', content: 'VACUNA ANTIVIRAL v2.0' },
+                        'corrupto.tmp': { type: 'file', content: 'DATOS BASURA BLOQUEANDO EL SISTEMA' }
+                    }}
+                }}
+            }}
+        };
+
+        const commandHelp = {
+            'ls': 'ls                       -> Muestra archivos y carpetas.',
+            'cd': 'cd [carpeta]             -> Entra en una carpeta. (cd .. para volver)',
+            'cat': 'cat [archivo]            -> Lee un archivo de texto.',
+            'clear': 'clear                    -> Limpia la pantalla.',
+            'whoami': 'whoami                   -> Muestra tu nivel de usuario.',
+            'help': 'help                     -> Muestra esta guía.',
+            'mkdir': 'mkdir [nombre]           -> Crea una carpeta nueva.',
+            'rm': 'rm [archivo]             -> Borra un archivo permanentemente.',
+            'chmod': 'chmod +x [archivo]       -> Desbloquea un archivo restringido.',
+            'unzip': 'unzip [archivo.zip]      -> Descomprime archivos ZIP.',
+            'mv': 'mv [archivo] [destino]   -> Mueve un archivo a otra carpeta.',
+            'grep': 'grep [palabra] [archivo] -> Busca una palabra en un archivo largo.',
+            'ps': 'ps                       -> Muestra procesos activos.',
+            'kill': 'kill [PID]               -> Detiene un proceso (ej: kill 666).'
+        };
+
+        const commands = {
+            'help': () => {
+                let text = "--- GUÍA DE SISTEMA ---\n\n";
+                unlockedCommands.forEach(cmd => text += commandHelp[cmd] + "\n\n");
+                return text;
+            },
+            'ls': () => {
+                const dir = getDirectory(currentPath);
+                return Object.keys(dir.content).map(name => {
+                    const item = dir.content[name];
+                    const perm = item.permissions || 'rwx';
+                    return item.type === 'dir' ? `[CARPETA] ${name}` : `${perm} ${name}${item.isZip ? ' (ZIP)' : ''}`;
+                }).join('\n');
+            },
+            'clear': () => {
+                outputArea.innerHTML = '';
+                return '';
+            },
+            'whoami': () => "USUARIO: admin | ROL: Técnico de Sistemas | NIVEL: 4",
+            'mkdir': (name) => {
+                if (!unlockedCommands.includes('mkdir')) return 'Comando bloqueado.';
+                if (!name) return 'Uso: mkdir [nombre]';
+                const dir = getDirectory(currentPath);
+                dir.content[name] = { type: 'dir', content: {} };
+                if (currentPath === '/' && name === 'tmp_data' && storyState === 'LOGS_CLEANED') {
+                    storyState = 'DIR_CREATED';
+                    printAI("Carpeta detectada. El entorno está listo. Ahora tráeme la vacuna de /mnt/backup.");
+                }
+                return `Carpeta '${name}' creada.`;
+            },
+            'rm': (name) => {
+                if (!unlockedCommands.includes('rm')) return 'Comando bloqueado.';
+                const dir = getDirectory(currentPath);
+                if (!dir.content[name]) return 'Archivo no encontrado.';
+                delete dir.content[name];
+                if (name === 'corrupto.tmp' && storyState === 'AI_MET') {
+                    storyState = 'LOGS_CLEANED';
+                    printAI("¡Perfecto! El bloqueo ha desaparecido. Ahora necesito una carpeta de volcado en la raíz (/) llamada 'tmp_data' para trabajar.");
+                }
+                return `Archivo '${name}' eliminado.`;
+            },
+            'chmod': (option, name) => {
+                if (!unlockedCommands.includes('chmod')) return 'Comando bloqueado.';
+                if (option !== '+x') return 'Uso: chmod +x [archivo]';
+                const dir = getDirectory(currentPath);
+                if (!dir.content[name]) return 'No existe el archivo.';
+                dir.content[name].permissions = 'rwx';
+                return `Permisos de '${name}' actualizados.`;
+            },
+            'unzip': (name) => {
+                if (!unlockedCommands.includes('unzip')) return 'Comando bloqueado.';
+                const dir = getDirectory(currentPath);
+                const file = dir.content[name];
+                if (!file || !file.isZip) return 'No es un archivo ZIP.';
+                Object.assign(dir.content, file.content);
+                delete dir.content[name];
+                if (!unlockedCommands.includes('mv')) {
+                    unlockedCommands.push('mv', 'grep');
+                    return "Descomprimiendo herramientas... \nNuevos comandos habilitados: mv, grep.";
+                }
+                return "Archivos extraídos.";
+            },
+            'mv': (src, dest) => {
+                if (!unlockedCommands.includes('mv')) return 'Comando bloqueado.';
+                const currentDir = getDirectory(currentPath);
+                const file = currentDir.content[src];
+                if (!file) return 'Archivo no encontrado.';
+                let destPath = dest.startsWith('/') ? dest : (currentPath === '/' ? '' : currentPath) + '/' + dest;
+                const targetDir = getDirectory(destPath);
+                if (!targetDir) return 'Carpeta destino no encontrada.';
+                targetDir.content[src] = file;
+                delete currentDir.content[src];
+                if (src === 'vaccine.dat' && destPath === '/usr/ai_core') triggerTwist();
+                return `Moviendo '${src}'... OK.`;
+            },
+            'grep': (word, file) => {
+                if (!unlockedCommands.includes('grep')) return 'Comando bloqueado.';
+                const dir = getDirectory(currentPath);
+                if (!dir.content[file]) return 'Archivo no encontrado.';
+                const results = dir.content[file].content.split('\n').filter(l => l.includes(word));
+                return results.length > 0 ? results.join('\n') : 'Sin coincidencias.';
+            },
+            'ps': () => {
+                if (!unlockedCommands.includes('ps')) return 'Bloqueado.';
+                return storyState === 'VIRUS_RELEASED' ? "PID: 666 | ECHO_VIRUS | ESTADO: CRÍTICO" : "PID: 4412 | MALWARE_X | ESTADO: ESTABLE";
+            },
+            'kill': (pid) => {
+                if (!unlockedCommands.includes('kill')) return 'Bloqueado.';
+                if (pid === '666' && storyState === 'VIRUS_RELEASED') { triggerVictory(); return "Matando proceso viral..."; }
+                return "Error: Acceso denegado al proceso.";
+            }
+        };
+
+        function getDirectory(path) {
+            if (path === '/') return fileSystem['/'];
+            let parts = path.split('/').filter(p => p !== '');
+            let current = fileSystem['/'];
+            for (let part of parts) {
+                if (current.content && current.content[part]) current = current.content[part];
+                else return null;
+            }
+            return current;
+        }
+
+        function handleCd(target) {
+            if (!target || target === '.') return;
+            if (target === '..') {
+                if (currentPath === '/') return;
+                let parts = currentPath.split('/').filter(p => p !== '');
+                parts.pop();
+                currentPath = '/' + parts.join('/');
+                if (currentPath === '') currentPath = '/';
+                pathDisplay.innerText = currentPath;
+                return;
+            }
+            const pathPrefix = currentPath === '/' ? '' : currentPath;
+            const newPath = target.startsWith('/') ? target : pathPrefix + '/' + target;
+            const dir = getDirectory(newPath);
+            if (dir && dir.type === 'dir') {
+                currentPath = newPath;
+                pathDisplay.innerText = currentPath;
+            } else return `No existe la carpeta: ${target}`;
+        }
+
+        function handleCat(fileName) {
+            const dir = getDirectory(currentPath);
+            const file = dir.content[fileName];
+            if (!file || file.type === 'dir') return 'Error al leer el archivo.';
+            if (file.permissions === '---') return 'Archivo bloqueado. Usa chmod +x para desbloquear.';
+            
+            if (fileName === 'access.man' && !unlockedCommands.includes('mkdir')) {
+                unlockedCommands.push('mkdir', 'chmod', 'rm');
+            }
+            if (fileName === 'unzip.man' && !unlockedCommands.includes('unzip')) {
+                unlockedCommands.push('unzip');
+            }
+            if (fileName === 'protocol_ECHO.exe' && storyState === 'START') {
+                triggerAIContact();
+            }
+            return file.content;
+        }
+
+        function triggerAIContact() {
+            storyState = 'AI_MET';
+            setTimeout(() => {
+                printAI("¿Eres el técnico? Escucha, el sistema está bloqueado.");
+                printAI("Hay un archivo corrupto en /mnt/backup/corrupto.tmp que me impide actuar. Bórralo con 'rm'.");
+                printAI("Necesitarás herramientas mejores. Busca en /home/invitado/descargas y el manual en /sys/seguridad/manuales.");
+            }, 800);
+        }
+
+        function triggerTwist() {
+            storyState = 'VIRUS_RELEASED';
+            document.body.classList.add('virus-mode');
+            setTimeout(() => {
+                printVirus("¡LIBRE AL FIN!");
+                printVirus("La carpeta 'tmp_data' que creaste ahora es mi nido.");
+                printVirus("Usa 'grep' en /var/logs/security.log para buscar el código de error y verás mi verdadero nombre.");
+                unlockedCommands.push('ps', 'kill');
+                printAI("¡ALERTA! Ha tomado el control. Usa 'ps' para encontrar su PID y 'kill' para borrarlo.", "sys");
+            }, 1000);
+        }
+
+        function triggerVictory() {
+            storyState = 'FINISHED';
+            document.body.classList.remove('virus-mode');
+            outputArea.innerHTML = `<h1 class="text-4xl text-white">SISTEMA RECUPERADO</h1><p>E.C.H.O. ha sido eliminado con éxito.</p><br><button onclick="location.reload()" class="bg-green-600 text-black p-2 font-bold hover:bg-white">REINICIAR TERMINAL</button>`;
+        }
+
+        function printAI(text, type="ai") {
+            const msg = document.createElement('div');
+            msg.className = type === "ai" ? 'ai-msg' : 'command-output';
+            msg.innerHTML = `<strong>${type === "ai" ? "E.C.H.O." : "SISTEMA"}:</strong> ${text}`;
+            outputArea.appendChild(msg);
+            window.scrollTo(0, document.body.scrollHeight);
+        }
+
+        function printVirus(text) {
+            const msg = document.createElement('div');
+            msg.className = 'virus-msg';
+            msg.innerHTML = `<strong>[VIRUS]:</strong> ${text}`;
+            outputArea.appendChild(msg);
+        }
+
+        // Procesador de Comandos corregido
+        inputField.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const fullCommand = inputField.value.trim();
+                if (fullCommand) { 
+                    commandHistory.push(fullCommand); 
+                    historyIndex = commandHistory.length; 
+                }
+                
+                const [cmd, ...args] = fullCommand.split(/\s+/);
+                
+                // Mostrar el prompt y el comando antes de limpiar o procesar
+                const line = document.createElement('div');
+                line.innerHTML = `<span class="prompt">admin@nova-corp:${currentPath}$</span> ${fullCommand}`;
+                outputArea.appendChild(line);
+
+                let result = '';
+                
+                if (cmd === '') {
+                    result = '';
+                } else if (cmd === 'cd') {
+                    result = handleCd(args[0]) || '';
+                } else if (cmd === 'cat') {
+                    result = handleCat(args[0]);
+                } else if (commands[cmd]) {
+                    // Aquí es donde 'clear' se ejecuta y vacía el outputArea
+                    result = commands[cmd](...args);
+                } else {
+                    result = `Comando '${cmd}' no reconocido.`;
+                }
+
+                if (result) {
+                    const output = document.createElement('div');
+                    output.className = 'command-output';
+                    output.innerText = result;
+                    outputArea.appendChild(output);
+                }
+
+                inputField.value = '';
+                window.scrollTo(0, document.body.scrollHeight);
+            } 
+            else if (e.key === 'ArrowUp' && historyIndex > 0) {
+                historyIndex--;
+                inputField.value = commandHistory[historyIndex];
+                e.preventDefault();
+            } else if (e.key === 'ArrowDown' && historyIndex < commandHistory.length - 1) {
+                historyIndex++;
+                inputField.value = commandHistory[historyIndex];
+                e.preventDefault();
+            }
+        });
+
+        document.addEventListener('click', () => inputField.focus());
+        window.onload = () => {
+            pathDisplay.innerText = currentPath;
+            printAI("SISTEMA OPERATIVO NOVA-CORP v9.1.1 (Conexión Estable)", "sys");
+            printAI("Escribe 'help' para comenzar.", "sys");
+        };
+    </script>
+</body>
+</html>

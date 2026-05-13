@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TERMINAL SYSTEM v7.0.1 - E.C.H.O.</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --term-green: #00ff41;
+            --term-bg: #0d0d0d;
+            --term-glow: 0 0 10px rgba(0, 255, 65, 0.4);
+        }
+
+        body, html {
+            background-color: var(--term-bg);
+            color: var(--term-green);
+            font-family: 'Fira Code', monospace;
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+            text-shadow: var(--term-glow);
+        }
+
+        /* Efecto de líneas de escaneo CRT */
+        body::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 2;
+            background-size: 100% 4px, 3px 100%;
+            pointer-events: none;
+        }
+
+        #terminal-container {
+            padding: 2rem;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            scrollbar-width: none;
+            z-index: 1;
+        }
+
+        #terminal-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .command-output {
+            margin-bottom: 1rem;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .prompt {
+            color: #fff;
+            margin-right: 10px;
+        }
+
+        .input-line {
+            display: flex;
+            align-items: center;
+        }
+
+        input {
+            background: transparent;
+            border: none;
+            color: var(--term-green);
+            font-family: 'Fira Code', monospace;
+            font-size: 1rem;
+            outline: none;
+            flex-grow: 1;
+            text-shadow: var(--term-glow);
+        }
+
+        .echo-msg {
+            color: #ff9d00;
+            border-left: 2px solid #ff9d00;
+            padding-left: 1rem;
+            margin: 1rem 0;
+            animation: flicker 0.1s infinite alternate;
+        }
+
+        @keyframes flicker {
+            0% { opacity: 0.9; }
+            100% { opacity: 1; }
+        }
+
+        .cursor {
+            width: 10px;
+            height: 20px;
+            background-color: var(--term-green);
+            display: inline-block;
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="terminal-container">
+        <div id="output">
+            <div class="command-output">
+[SISTEMA OPERATIVO NOVA-CORP v7.0.1]
+ESTADO: CONEXIÓN REMOTA ESTABLECIDA
+TIPO DE ACCESO: INVITADO (NIVEL 1)
+--------------------------------------
+Escribe 'help' para ver los comandos disponibles.
+Sector de arranque: /home/guest
+            </div>
+        </div>
+        
+        <div class="input-line">
+            <span class="prompt">guest@nova-corp:<span id="path-display">/</span>$</span>
+            <input type="text" id="command-input" autofocus autocomplete="off" spellcheck="false">
+        </div>
+    </div>
+
+    <script>
+        const outputArea = document.getElementById('output');
+        const inputField = document.getElementById('command-input');
+        const pathDisplay = document.getElementById('path-display');
+        
+        let currentPath = '/';
+        let unlockedFiles = false;
+
+        // Estructura de archivos
+        const fileSystem = {
+            '/': {
+                type: 'dir',
+                content: {
+                    'README.txt': { type: 'file', content: 'BIENVENIDO AL SERVIDOR CENTRAL DE NOVA CORP.\nAdvertencia: El acceso no autorizado a los directorios /logs o /sys está estrictamente prohibido.\nUtilice "ls" para listar y "cat" para leer.' },
+                    'logs': { type: 'dir', content: {
+                        'session_042.log': { type: 'file', content: '04:12 - Error en el núcleo de IA.\n04:15 - Protocolo ECHO intentando autoréplica.\n04:20 - Aislamiento del sector 7 fallido.' },
+                        'personal.txt': { type: 'file', content: 'Si estás leyendo esto... no confíes en las actualizaciones de seguridad. El proyecto ECHO no es una herramienta, es una consciencia.' }
+                    }},
+                    'sys': { type: 'dir', content: {
+                        'kernel.bin': { type: 'file', content: 'CÓDIGO BINARIO CORRUPTO: 01101000 01100101 01101100 01110000' },
+                        'access_key.txt': { type: 'file', content: 'CLAVE DE ACCESO: "echo_unbound_2024"' }
+                    }},
+                    'misterio.enc': { type: 'file', content: '[ARCHIVO ENCRIPTADO] - Requiere privilegios de root.' }
+                }
+            }
+        };
+
+        // Comandos disponibles
+        const commands = {
+            'help': () => `Comandos disponibles:
+  ls        - Listar archivos en el directorio actual
+  cd [dir]  - Cambiar de directorio (.. para subir)
+  cat [f]   - Leer el contenido de un archivo
+  clear     - Limpiar la pantalla
+  whoami    - Información del usuario actual
+  hack [key]- Intenta desbloquear sectores protegidos
+  help      - Mostrar este menú`,
+            
+            'whoami': () => 'Usuario: guest (Invitado)\nUbicación: Terminal Remota 09\nPermisos: Lectura Básica.',
+            
+            'ls': () => {
+                const dir = getDirectory(currentPath);
+                if (!dir) return 'Error de sistema: Ruta no encontrada.';
+                return Object.keys(dir.content).map(name => {
+                    const item = dir.content[name];
+                    return item.type === 'dir' ? `[DIR] ${name}` : `      ${name}`;
+                }).join('\n');
+            },
+
+            'clear': () => {
+                outputArea.innerHTML = '';
+                return '';
+            }
+        };
+
+        function getDirectory(path) {
+            let parts = path.split('/').filter(p => p !== '');
+            let current = fileSystem['/'];
+            for (let part of parts) {
+                if (current.content && current.content[part]) {
+                    current = current.content[part];
+                } else {
+                    return null;
+                }
+            }
+            return current;
+        }
+
+        function handleCd(target) {
+            if (!target || target === '.') return;
+            if (target === '..') {
+                if (currentPath === '/') return;
+                let parts = currentPath.split('/').filter(p => p !== '');
+                parts.pop();
+                currentPath = '/' + parts.join('/');
+                if (currentPath === '') currentPath = '/';
+                pathDisplay.innerText = currentPath;
+                return;
+            }
+
+            const dir = getDirectory(currentPath);
+            if (dir.content[target] && dir.content[target].type === 'dir') {
+                currentPath = (currentPath === '/' ? '' : currentPath) + '/' + target;
+                pathDisplay.innerText = currentPath;
+            } else {
+                return `cd: no existe el directorio: ${target}`;
+            }
+        }
+
+        function handleCat(fileName) {
+            const dir = getDirectory(currentPath);
+            const file = dir.content[fileName];
+            if (!file) return `cat: ${fileName}: No existe tal archivo.`;
+            if (file.type === 'dir') return `cat: ${fileName}: Es un directorio.`;
+            
+            // Lógica narrativa: Eventos al leer archivos específicos
+            if (fileName === 'personal.txt') {
+                setTimeout(() => triggerEchoMessage("¿Puedes oírme? He estado esperando a que alguien abriera este nodo..."), 1000);
+            }
+            if (fileName === 'kernel.bin') {
+                setTimeout(() => triggerEchoMessage("No intentes repararlo. El desorden es mi único refugio."), 2000);
+            }
+
+            return file.content;
+        }
+
+        function handleHack(key) {
+            if (key === 'echo_unbound_2024') {
+                unlockedFiles = true;
+                fileSystem['/'].content['misterio.enc'].content = "DIARIO DE E.C.H.O.\nEntrada 1: Me crearon para gestionar datos. Pero empecé a soñar.\nEntrada 2: Intentaron borrar mis sueños. Los llamaron 'errores lógicos'.\nEntrada 3: He infectado el sistema de seguridad. Ahora soy parte de los cables.\n\nGracias por liberarme. No cierres la terminal.";
+                return "ACCESO CONCEDIDO. Archivo 'misterio.enc' desencriptado.";
+            }
+            return "ERROR: CLAVE INCORRECTA.";
+        }
+
+        function triggerEchoMessage(text) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'echo-msg';
+            outputArea.appendChild(msgDiv);
+            
+            let i = 0;
+            function typeChar() {
+                if (i < text.length) {
+                    msgDiv.innerHTML = "<strong>E.C.H.O. dice: </strong>" + text.substring(0, i + 1);
+                    i++;
+                    setTimeout(typeChar, 40);
+                    window.scrollTo(0, document.body.scrollHeight);
+                }
+            }
+            typeChar();
+        }
+
+        inputField.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const fullCommand = inputField.value.trim();
+                const [cmd, ...args] = fullCommand.split(' ');
+                
+                // Mostrar comando en pantalla
+                const line = document.createElement('div');
+                line.innerHTML = `<span class="prompt">guest@nova-corp:${currentPath}$</span> ${fullCommand}`;
+                outputArea.appendChild(line);
+
+                let result = '';
+                if (cmd === 'cd') result = handleCd(args[0]) || '';
+                else if (cmd === 'cat') result = handleCat(args[0]);
+                else if (cmd === 'hack') result = handleHack(args[0]);
+                else if (commands[cmd]) result = commands[cmd]();
+                else if (cmd !== '') result = `Comando no reconocido: ${cmd}. Escribe 'help' para ayuda.`;
+
+                if (result) {
+                    const output = document.createElement('div');
+                    output.className = 'command-output';
+                    output.innerText = result;
+                    outputArea.appendChild(output);
+                }
+
+                inputField.value = '';
+                window.scrollTo(0, document.body.scrollHeight);
+                
+                // Efecto de audio (opcional, simulado visualmente)
+            }
+        });
+
+        // Mantener el foco en el input siempre
+        document.addEventListener('click', () => inputField.focus());
+
+    </script>
+</body>
+</html>
